@@ -12,6 +12,7 @@ pref=9e9; %1/(4pi eps0)
 x=linspace(-xmax,xmax,xpoints);
 y=x;
 [X,Y]=meshgrid(x,y); %2D matrices holding X or Y coordinate for each point on the grid
+R=sqrt(X.^2+Y.^2);
 
 %define 2 conducting spheres with opposite charge 
 q=1e-10; %charge on spheres [C]
@@ -47,23 +48,32 @@ Ey=(E1y+E2y).*(out1.*out2);
 E=sqrt(Ex.^2+Ey.^2); %and size of E
 V=(V1+V2).*(out1.*out2)+in1*pref*q1/radius+in2*pref*q2/radius; %potential, inside spheres is constant (conductors)
 
+%and compare to approximate formula of dipole field (only valid far away
+%from charges), note how it really only starts to compare to real dipole
+%when far away from the dipole
+px=q*(x1-x2); %x component of dipole moment [Cm]
+py=q*(y1-y2); %x component of dipole moment [Cm]
+Vdip=pref*((px*X+py*Y)./R.^3);
+Exdip=-pref*(px./R.^3-3*(px*X+py*Y).*X./R.^5);
+Eydip=-pref*(py./R.^3-3*(px*X+py*Y).*Y./R.^5);
+Edip=sqrt(Exdip.^2+Eydip.^2);
+
 %and showtime!
 figure
 %show vector plot, but limit number of points to keep the number of vector
 %reasonable
-title('electric field')
 scale=1;
 nsteps=25; %total number of vector points in each direction
 step=round(xpoints/nsteps);
 quiver(X(1:step:xpoints,1:step:xpoints),Y(1:step:xpoints,1:step:xpoints),Ex(1:step:xpoints,1:step:xpoints),Ey(1:step:xpoints,1:step:xpoints),scale);
+title('electric field')
 xlabel('x');
 ylabel('y');
 axis image
 
 figure
-title('electric field and fieldlines')
 imagesc(x,y,E)
-title('|E|')
+title('electric field and fieldlines')
 xlabel('x');
 ylabel('y');
 axis image
@@ -73,7 +83,18 @@ set(hLines,'Color','r');
 colorbar
 
 figure
-title('electrostatic potential')
+imagesc(x,y,Edip,[min(E(:)), max(E(:))])
+title('electric field and fieldlines approximate dipole')
+xlabel('x');
+ylabel('y');
+axis image
+hold on
+hLines = streamslice(X,Y,Exdip,Eydip);
+set(hLines,'Color','r');
+colorbar
+
+
+figure
 imagesc(x,y,V)
 title('V')
 xlabel('x');
@@ -83,10 +104,9 @@ colorbar
 
 
 figure
-title('equipotential curves')
 nlines=50;
 contour(x,y,V,nlines)
-title('V')
+title('equipotential surfaces')
 xlabel('x');
 ylabel('y');
 axis image

@@ -62,10 +62,13 @@ imagesc(x,y,elec1+elec2)
 title('position of electrodes')
 hold on
 
-kpoints=100; %number of walks per point (higher is better and more important than increasing the recursion level)
+kpoints=500; %number of walks per point (higher is better and more important than increasing the recursion level)
 eps=xmax/xpoints;
 
 Vgrid=elec1+elec2; %fill in potential that is already known
+Exgrid=zeros(size(Vgrid));
+Eygrid=zeros(size(Vgrid));
+
 vac=(~indisc(X,Y,p1,r1)).*(~indisc(X,Y,p2,r2));
 idvac=find(vac); 
 gridpoints=size(idvac)-1;
@@ -74,6 +77,8 @@ for l=1:gridpoints,
         %choose a point in space
         pn=[X(idvac(l)),Y(idvac(l))];       
         Vn=0; %original estimate of V
+        Exn=0;
+        Eyn=0;
         %find the largest sphere just touching an electrode from here
         rn=min(dist(pn,p1,r1),dist(pn,p2,r2));
         %and draw this circle
@@ -83,9 +88,11 @@ for l=1:gridpoints,
         %circle        
         for k=1:kpoints
             i=0;
-            Vn=makestep(Vn,pn,rn,p1,r1,V1,p2,r2,V2,i,eps);
+            [Vn,Exn,Eyn]=makestep(Vn,Exn,Eyn,pn,rn,p1,r1,V1,p2,r2,V2,i,eps);
         end
         Vgrid(idvac(l))=Vn/kpoints; %store potential
+        Exgrid(idvac(l))=Exn/kpoints; %store x component of E field estimate
+        Eygrid(idvac(l))=Eyn/kpoints; %store x component of E field estimate     
 end
 
 figure
@@ -97,6 +104,22 @@ figure
 imagesc(x,y,laplace);
 title('laplacian(V) should be 0')
 colorbar
+
+figure
+subplot(2,2,1)
+imagesc(x,y,Ex);
+title('Ex')
+subplot(2,2,2)
+imagesc(x,y,Ey);
+title('Ey')
+subplot(2,2,3)
+imagesc(x,y,Exgrid);
+title('Exgrid')
+subplot(2,2,4)
+imagesc(x,y,Eygrid);
+title('Eygrid')
+
+
 
 
 %and find its potential with walk on spheres random walks
@@ -114,7 +137,7 @@ function r= dist(rn,p,r)
 r=sqrt( (rn(:,1)-p(:,1)).^2+  (rn(:,2)-p(:,2)).^2 )-r;
 end
 
-function Vn=makestep(Vn,pn,rn,p1,r1,V1,p2,r2,V2,i,eps)
+function [Vn,Exn,Eyn]=makestep(Vn,Exn,Eyn,pn,rn,p1,r1,V1,p2,r2,V2,i,eps)
 maxrecurse=7;
 theta=rand(1)*2*pi; %arbitrary direction of walk
     pn2=pn+rn.*[cos(theta),sin(theta)]; %new position somewhere on circle
@@ -122,17 +145,23 @@ theta=rand(1)*2*pi; %arbitrary direction of walk
         %we reached a point very close to boundary 1, assign potential of
         %that boundary
         Vn=Vn+V1;
+        Exn=Exn-(3*(pn2(:,1)-pn(:,1))/rn^2)*V1; % see eq 7 https://arxiv.org/pdf/physics/0002021.pdf  is this correct?
+        Eyn=Eyn-(3*(pn2(:,2)-pn(:,2))/rn^2)*V1; % see eq 7 https://arxiv.org/pdf/physics/0002021.pdf  is this correct?
+        
     elseif (dist(pn2,p2,r2)<eps)
         %we reached a point very close to boundary 2, assign potential of
         %that boundary
         Vn=Vn+V2;
+        Exn=Exn-(3*(pn2(:,1)-pn(:,1))/rn^2)*V2; % see eq 7 https://arxiv.org/pdf/physics/0002021.pdf  is this correct?
+        Eyn=Eyn-(3*(pn2(:,2)-pn(:,2))/rn^2)*V2; % see eq 7 https://arxiv.org/pdf/physics/0002021.pdf  is this correct?  
+        
     else
         rn2=min(dist(pn2,p1,r1),dist(pn2,p2,r2));
         %viscircles(pn2,rn2); %show the new circle 
         %if no boundary found, take new circle from here (recursion)
         i=i+1; %keep track of recursion depth
         if (i<maxrecurse) 
-            Vn=makestep(Vn,pn2,rn2,p1,r1,V1,p2,r2,V2,i,eps);
+            [Vn,Exn,Eyn]=makestep(Vn,Exn,Eyn,pn2,rn2,p1,r1,V1,p2,r2,V2,i,eps);
         end
     end
 end

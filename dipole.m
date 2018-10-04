@@ -111,3 +111,45 @@ xlabel('x');
 ylabel('y');
 axis image
 colorbar
+
+figure
+nlines=50;
+contour(x,y,V,nlines)
+title('equipotential surfaces and fieldlines')
+xlabel('x');
+ylabel('y');
+axis image
+hLines = streamslice(X,Y,Ex,Ey);
+set(hLines,'Color','r');
+colorbar
+
+Vdipclip=Vdip.*(Vdip>min(V(:))).*(Vdip<max(V(:))); %clip to same levels as real dipole for plotting only
+figure
+imagesc(x,y,Vdipclip)
+title('V')
+xlabel('x');
+ylabel('y');
+axis image
+colorbar
+
+
+figure
+nlines=50;
+contour(x,y,Vdipclip,nlines)
+title('equipotential surfaces')
+xlabel('x');
+ylabel('y');
+axis image
+colorbar
+
+figure
+nlines=50;
+contour(x,y,Vdipclip,nlines)
+title('equipotential surfaces and fieldlines')
+xlabel('x');
+ylabel('y');
+axis image
+hLines = streamslice(X,Y,Exdip,Eydip);
+set(hLines,'Color','r');
+colorbar
+

@@ -56,7 +56,7 @@ axis image
 %solve the Laplace equation for vacuum with boundary conditions
 %first rough attempt: all vacuum points to average potential on electrodes
 %(this is clearly too crude but we need to start somewhere)
-V(idvac)=mean(V(idelectrode)); %replave vacuum potential by the mean potential on the electrodes
+V(idvac)=mean(V(idelectrode)); %replace vacuum potential by the mean potential on the electrodes
 
 %second step: relaxation method
 Vn=V; %starting condition is first rough estimate

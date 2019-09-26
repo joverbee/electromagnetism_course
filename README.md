@@ -1,2 +1,2 @@
 # electromagnetism_course
-matlab codes demonstrating basic principles of electromagnetism for students of AFIII: electromagnetism
+Jupyter notebook and matlab codes demonstrating basic principles of electromagnetism for students of AFIII: electromagnetism

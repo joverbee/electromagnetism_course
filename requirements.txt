@@ -1,5 +1,5 @@
-numpy==1.16.*
-matplotlib==3.*
-scipy==1.2.*
+numpy
+matplotlib
+scipy
 
 
